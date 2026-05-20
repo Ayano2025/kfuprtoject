@@ -1,14 +1,10 @@
-# Помощник ученикам — монолитный HTML проект
 
-Скопируй код ниже в файл `index.html`, затем загрузи проект в репозиторий на GitHub.
-
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Помощник ученикам</title>
+<title>Помощник ученикам от альберта группы 5551</title>
 <style>
 :root{
     --bg:#fffaf2;
@@ -86,7 +82,15 @@ header{
     min-height:100vh;
     padding:40px 20px;
     display:none;
-    animation:fade 0.4s ease;
+    opacity:0;
+    transform:translateX(80px);
+    transition:0.35s ease;
+}
+
+.page.active{
+    display:block;
+    opacity:1;
+    transform:translateX(0px);
 }
 
 .page.active{
@@ -332,7 +336,7 @@ img.preview-image{
     <button class="theme-btn" onclick="toggleTheme()">Тема</button>
 </header>
 
-<section id="home" class="page active center">
+<section id="home" class="page center">
     <h1 class="big-title">Помощник ученикам</h1>
 
     <div class="button-grid" style="max-width:600px;">
@@ -405,9 +409,38 @@ let currentSubject = '';
 let selectedFile = null;
 
 function openPage(pageId){
-    document.querySelectorAll('.page').forEach(page=>{
+    const allPages = document.querySelectorAll('.page');
+
+    allPages.forEach(page=>{
         page.classList.remove('active');
+        page.style.display = 'none';
     });
+
+    const currentPage = document.getElementById(pageId);
+
+    currentPage.style.display = 'block';
+
+    setTimeout(()=>{
+        currentPage.classList.add('active');
+    },10);
+
+    window.scrollTo({
+        top:0,
+        behavior:'smooth'
+    });
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+    document.querySelectorAll('.page').forEach(page=>{
+        page.style.display = 'none';
+    });
+
+    document.getElementById('home').style.display = 'block';
+
+    setTimeout(()=>{
+        document.getElementById('home').classList.add('active');
+    },10);
+}););
 
     document.getElementById(pageId).classList.add('active');
 }
