@@ -1,4 +1,5 @@
 # kfuprtoject
+index.html
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
  
 /* ═══════════════════════════════════════
