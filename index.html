@@ -297,14 +297,17 @@ header{
 
 <div class="chat-input-area">
 <input type="text" class="chat-input" id="messageInput" placeholder="Введите сообщение...">
-<input type="file" id="fileInput" class="hidden">
-<button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
+<input type="file" id="fileInput" class="hidden" accept="image/*,*/*">
+<button class="attach-btn" onclick="triggerFile()">📎</button>
 <button class="send-btn" onclick="sendMessage()">Отправить</button>
 </div>
 </div>
 </section>
 
 <script>
+    function triggerFile(){
+    document.getElementById('fileInput').click();
+}
 const subjects=[
 'Родной язык','Физра','Биология','Литература','Иностранный язык','Физика','География','Химия','ОБЗР','Русский язык','История','Информатика','Обществознание','Математика'
 ];
@@ -458,8 +461,12 @@ function deleteMessage(index){
     renderMessages(messages);
 }
 
-document.getElementById('fileInput').addEventListener('change',e=>{
-    selectedFile=e.target.files[0];
+document.getElementById('fileInput').addEventListener('change', e => {
+    selectedFile = e.target.files[0];
+
+    // 🔥 важный фикс: сброс input, чтобы можно было выбрать тот же файл снова
+    e.target.value = '';
+});
 });
 </script>
 </body>
