@@ -464,7 +464,7 @@ function deleteMessage(index){
 document.getElementById('fileInput').addEventListener('change', e => {
     selectedFile = e.target.files[0];
 
-    // 🔥 важный фикс: сброс input, чтобы можно было выбрать тот же файл снова
+    //  фикс: сброс input, чтобы можно было выбрать тот же файл снова
     e.target.value = '';
 });
 });
