@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -17,7 +16,7 @@
 body{
     min-height:100vh;
     color:white;
-    overflow:hidden;
+    overflow-x:hidden;
     background:url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat fixed;
 }
 
@@ -30,28 +29,20 @@ body::before{
     z-index:-1;
 }
 
+/* ✅ UPDATED PAGE SYSTEM */
 .page{
-    display:none;
-    width:100%;
     min-height:100vh;
-    padding:30px;
-    animation:fade .35s ease;
+    padding:40px 20px;
+    display:none;
+    opacity:0;
+    transform:translateX(40px);
+    transition:0.35s ease;
 }
 
 .page.active{
-    display:flex;
-    flex-direction:column;
-}
-
-@keyframes fade{
-    from{
-        opacity:0;
-        transform:translateY(20px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
+    display:block;
+    opacity:1;
+    transform:translateX(0px);
 }
 
 header{
@@ -221,33 +212,14 @@ header{
 .hidden{
     display:none;
 }
-
-@media(max-width:700px){
-    .title{
-        font-size:42px;
-    }
-
-    .logo{
-        font-size:28px;
-    }
-
-    .card{
-        min-height:120px;
-        font-size:22px;
-    }
-
-    .chat-input-area{
-        flex-direction:column;
-    }
-}
 </style>
 </head>
+
 <body>
 
 <section id="home" class="page active">
 <header>
 <div class="logo">Помощник ученикам</div>
-<button class="theme-btn">Тема</button>
 </header>
 
 <div class="center-box">
@@ -297,17 +269,14 @@ header{
 
 <div class="chat-input-area">
 <input type="text" class="chat-input" id="messageInput" placeholder="Введите сообщение...">
-<input type="file" id="fileInput" class="hidden" accept="image/*,*/*">
-<button class="attach-btn" onclick="triggerFile()">📎</button>
+<input type="file" id="fileInput" class="hidden">
+<button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
 <button class="send-btn" onclick="sendMessage()">Отправить</button>
 </div>
 </div>
 </section>
 
 <script>
-    function triggerFile(){
-    document.getElementById('fileInput').click();
-}
 const subjects=[
 'Родной язык','Физра','Биология','Литература','Иностранный язык','Физика','География','Химия','ОБЗР','Русский язык','История','Информатика','Обществознание','Математика'
 ];
@@ -316,12 +285,22 @@ let currentCategory='';
 let currentSubject='';
 let selectedFile=null;
 
-function openPage(id){
+/* ✅ UPDATED FUNCTION */
+function openPage(pageId){
+    window.scrollTo({ top:0, behavior:'smooth' });
+
     document.querySelectorAll('.page').forEach(page=>{
         page.classList.remove('active');
+        page.style.display = 'none';
     });
 
-    document.getElementById(id).classList.add('active');
+    const activePage = document.getElementById(pageId);
+
+    activePage.style.display = 'block';
+
+    setTimeout(()=>{
+        activePage.classList.add('active');
+    },10);
 }
 
 function openSubjectsMenu(){
@@ -354,10 +333,11 @@ function openChat(category,subject){
     openPage('chatPage');
 }
 
+/* ✅ FIXED (was goBackToMenu in instruction) */
 function goBack(){
-    if(currentCategory==='Зачеты'){
+    if(currentCategory === 'Зачеты'){
         openPage('home');
-    }else{
+    } else {
         openPage('subjectsMenu');
     }
 }
@@ -370,16 +350,11 @@ function sendMessage(){
     const input=document.getElementById('messageInput');
     const text=input.value.trim();
 
-    if(!text && !selectedFile)return;
+    if(!text && !selectedFile) return;
 
     const messages=JSON.parse(localStorage.getItem(getStorageKey()))||[];
 
-    const message={
-        text:text,
-        image:null,
-        file:null,
-        fileName:null
-    };
+    const message={ text, image:null, file:null, fileName:null };
 
     if(selectedFile){
         const reader=new FileReader();
@@ -461,13 +436,10 @@ function deleteMessage(index){
     renderMessages(messages);
 }
 
-document.getElementById('fileInput').addEventListener('change', e => {
-    selectedFile = e.target.files[0];
-
-    //  фикс: сброс input, чтобы можно было выбрать тот же файл снова
-    e.target.value = '';
-});
+document.getElementById('fileInput').addEventListener('change',e=>{
+    selectedFile=e.target.files[0];
 });
 </script>
+
 </body>
 </html>
