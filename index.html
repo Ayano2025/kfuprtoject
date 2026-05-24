@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Планирование экзаменов от Альберта группы 5551</title>
+  <title>Exam Planner</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -193,6 +193,24 @@
     .days-text {
       opacity: 0.7;
       font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .delete-btn {
+      border: none;
+      background: rgba(255, 80, 80, 0.25);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .delete-btn:hover {
+      background: rgba(255, 80, 80, 0.4);
+      transform: scale(1.05);
     }
 
     .empty {
@@ -220,7 +238,8 @@
       <div class="title">Планирование экзаменов</div>
       <div class="subtitle">
         Планируй подготовку к экзаменам и следи, сколько дней осталось.
-        От Альберта группы 5551
+        Сайт создан Альбертов группы 5551
+        Проверяющий проект: Гурьев Максим Сергеевич
       </div>
 
       <div class="info-card">
@@ -250,7 +269,7 @@
     const examList = document.getElementById('examList');
     const examCount = document.getElementById('examCount');
 
-    let exams = [];
+    let exams = JSON.parse(localStorage.getItem('exams')) || [];
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -258,11 +277,26 @@
       const name = document.getElementById('examName').value;
       const date = document.getElementById('examDate').value;
 
-      exams.push({ name, date });
+      exams.push({
+        id: Date.now(),
+        name,
+        date
+      });
 
+      saveExams();
       renderExams();
       form.reset();
     });
+
+    function saveExams() {
+      localStorage.setItem('exams', JSON.stringify(exams));
+    }
+
+    function deleteExam(id) {
+      exams = exams.filter(exam => exam.id !== id);
+      saveExams();
+      renderExams();
+    }
 
     function renderExams() {
       examList.innerHTML = '';
@@ -292,12 +326,18 @@
           <div class="days-left">
             <div class="days-number">${daysLeft}</div>
             <div class="days-text">дней осталось</div>
+
+            <button class="delete-btn" onclick="deleteExam(${exam.id})">
+              Удалить
+            </button>
           </div>
         `;
 
         examList.appendChild(card);
       });
     }
+
+    renderExams();
   </script>
 
 </body>
