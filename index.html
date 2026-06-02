@@ -4,341 +4,1209 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Exam Planner</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c27;
+      --border: rgba(255,255,255,0.07);
+      --border-hover: rgba(255,255,255,0.15);
+      --text: #f0f0f8;
+      --text-muted: rgba(240,240,248,0.45);
+      --text-subtle: rgba(240,240,248,0.25);
+      --accent: #7b6ef6;
+      --accent-glow: rgba(123,110,246,0.3);
+      --accent2: #f06292;
+      --accent3: #4dd0b8;
+      --green: #4dd0b8;
+      --yellow: #f5c842;
+      --red: #f06292;
+      --radius: 18px;
+      --radius-sm: 10px;
+    }
+
+    *, *::before, *::after {
+      margin: 0; padding: 0;
       box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
     }
 
     body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-      background: linear-gradient(135deg, #72a8ff, #9c7dff, #ff9fd2);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 30px;
       overflow-x: hidden;
-      color: white;
-      position: relative;
     }
 
-    .blur {
-      position: absolute;
-      width: 350px;
-      height: 350px;
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── AMBIENT GLOWS ── */
+    .glow-orb {
+      position: fixed;
       border-radius: 50%;
-      filter: blur(120px);
+      filter: blur(100px);
+      pointer-events: none;
       z-index: 0;
     }
+    .glow-orb.a { width: 500px; height: 500px; background: rgba(123,110,246,0.12); top: -150px; left: -150px; }
+    .glow-orb.b { width: 400px; height: 400px; background: rgba(240,98,146,0.08); bottom: -100px; right: -100px; }
+    .glow-orb.c { width: 300px; height: 300px; background: rgba(77,208,184,0.07); top: 40%; left: 40%; transform: translate(-50%,-50%); }
 
-    .blur1 {
-      background: rgba(255,255,255,0.4);
-      top: -80px;
-      left: -80px;
-    }
-
-    .blur2 {
-      background: rgba(133, 89, 255, 0.5);
-      bottom: -80px;
-      right: -80px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 1150px;
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 24px;
+    /* ── LAYOUT ── */
+    .app {
       position: relative;
-      z-index: 2;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 24px 60px;
     }
 
-    .glass {
-      background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(22px);
-      -webkit-backdrop-filter: blur(22px);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 30px;
-      box-shadow: 0 10px 35px rgba(0,0,0,0.15);
-    }
-
-    .sidebar {
-      padding: 28px;
-    }
-
-    .title {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-
-    .subtitle {
-      opacity: 0.8;
-      line-height: 1.6;
-      margin-bottom: 28px;
-    }
-
-    .info-card {
-      padding: 22px;
-      border-radius: 24px;
-      background: rgba(255,255,255,0.1);
-      margin-bottom: 24px;
-    }
-
-    .info-label {
-      font-size: 14px;
-      opacity: 0.7;
-      margin-bottom: 10px;
-    }
-
-    .info-value {
-      font-size: 40px;
-      font-weight: 700;
-    }
-
-    form {
+    /* ── HEADER ── */
+    header {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    input, button {
-      border: none;
-      outline: none;
-      border-radius: 18px;
-      padding: 16px;
-      font-size: 15px;
-    }
-
-    input {
-      background: rgba(255,255,255,0.15);
-      color: white;
-    }
-
-    input::placeholder {
-      color: rgba(255,255,255,0.7);
-    }
-
-    button {
-      background: rgba(255,255,255,0.22);
-      color: white;
-      cursor: pointer;
-      transition: 0.25s ease;
-      font-weight: 600;
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      background: rgba(255,255,255,0.3);
-    }
-
-    .main {
-      padding: 28px;
-    }
-
-    .section-title {
-      font-size: 24px;
-      font-weight: 600;
-      margin-bottom: 22px;
-    }
-
-    .exam-list {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .exam-card {
-      background: rgba(255,255,255,0.1);
-      border-radius: 22px;
-      padding: 22px;
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      transition: 0.25s ease;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .exam-card:hover {
-      transform: scale(1.02);
-      background: rgba(255,255,255,0.15);
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    .exam-name {
-      font-size: 20px;
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 20px var(--accent-glow);
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .header-stats {
+      display: flex;
+      gap: 8px;
+    }
+
+    .stat-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 7px 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: border-color 0.2s;
+    }
+
+    .stat-chip:hover { border-color: var(--border-hover); }
+
+    .stat-chip strong {
+      color: var(--text);
       font-weight: 600;
-      margin-bottom: 6px;
     }
 
-    .exam-date {
-      opacity: 0.8;
-      font-size: 14px;
+    .stat-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
     }
 
-    .days-left {
-      text-align: right;
+    /* ── MAIN GRID ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+      align-items: start;
     }
 
-    .days-number {
-      font-size: 34px;
+    /* ── PANEL (shared card style) ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color 0.3s;
+    }
+
+    .panel:hover { border-color: var(--border-hover); }
+
+    .panel-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
       font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-subtle);
+      margin-bottom: 20px;
     }
 
-    .days-text {
-      opacity: 0.7;
-      font-size: 14px;
+    /* ── FORM ── */
+    .form-group {
       margin-bottom: 12px;
     }
 
-    .delete-btn {
-      border: none;
-      background: rgba(255, 80, 80, 0.25);
-      color: white;
-      padding: 10px 16px;
-      border-radius: 14px;
-      cursor: pointer;
-      transition: 0.2s ease;
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
       font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.5);
+      cursor: pointer;
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--text-subtle); }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    select option { background: #1c1c27; }
+
+    textarea { resize: none; height: 72px; line-height: 1.5; }
+
+    .color-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .color-dot {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .color-dot:hover { transform: scale(1.15); }
+    .color-dot.selected { border-color: white; transform: scale(1.1); }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      margin-top: 6px;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 28px var(--accent-glow);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    /* ── SEARCH & FILTER BAR ── */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-subtle);
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    #searchInput {
+      padding-left: 36px;
+      height: 40px;
+    }
+
+    .filter-btn {
+      height: 40px;
+      padding: 0 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(123,110,246,0.08);
+    }
+
+    .sort-select {
+      height: 40px;
+      padding: 0 12px;
+      width: auto;
+    }
+
+    /* ── EXAM LIST ── */
+    .exam-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── EXAM CARD ── */
+    .exam-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: default;
+      transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+      animation: slideIn 0.3s ease both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .exam-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--card-color, var(--accent));
+      border-radius: 3px 0 0 3px;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .exam-card:hover {
+      border-color: var(--border-hover);
+      transform: translateX(3px);
+      box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+    }
+
+    .exam-card.done {
+      opacity: 0.45;
+    }
+
+    .card-color-bar {
+      width: 3px;
+      align-self: stretch;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .card-main { flex: 1; min-width: 0; }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .exam-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .exam-badge {
+      font-size: 10px;
       font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 100px;
+      background: var(--surface2);
+      color: var(--text-muted);
+      flex-shrink: 0;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
     }
 
-    .delete-btn:hover {
-      background: rgba(255, 80, 80, 0.4);
-      transform: scale(1.05);
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
     }
 
-    .empty {
+    .meta-item {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .exam-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── COUNTDOWN ── */
+    .card-countdown {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .days-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .days-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      margin-bottom: 10px;
+    }
+
+    /* ── URGENCY COLORS ── */
+    .urgent   { color: var(--red); }
+    .soon     { color: var(--yellow); }
+    .ok       { color: var(--green); }
+    .past     { color: var(--text-subtle); }
+
+    /* ── PROGRESS BAR (days passed) ── */
+    .progress-wrap {
+      width: 100%;
+      height: 3px;
+      background: var(--surface2);
+      border-radius: 2px;
+      margin: 8px 0 2px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+
+    /* ── CARD ACTIONS ── */
+    .card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .icon-btn:hover { border-color: var(--border-hover); color: var(--text); }
+    .icon-btn.danger:hover { border-color: var(--red); color: var(--red); background: rgba(240,98,146,0.08); }
+    .icon-btn.done-btn:hover { border-color: var(--green); color: var(--green); background: rgba(77,208,184,0.08); }
+    .icon-btn.active-done { border-color: var(--green); color: var(--green); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
       text-align: center;
-      opacity: 0.75;
-      margin-top: 60px;
-      font-size: 18px;
+      padding: 60px 20px;
+      color: var(--text-muted);
     }
 
-    @media (max-width: 900px) {
-      .container {
-        grid-template-columns: 1fr;
-      }
+    .empty-state .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+      filter: grayscale(0.4);
     }
+
+    .empty-state h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── SUMMARY STRIP (below list) ── */
+    .summary-strip {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .summary-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 12px;
+    }
+
+    .summary-chip .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+
+    /* ── TOAST NOTIFICATION ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border-hover);
+      color: var(--text);
+      padding: 12px 22px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 10000;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 5000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-hover);
+      border-radius: 22px;
+      padding: 28px;
+      width: 100%;
+      max-width: 400px;
+      transform: scale(0.92) translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
+    }
+
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      padding: 11px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover { border-color: var(--border-hover); color: var(--text); }
+
+    /* ── AUTHOR BANNER ── */
+    .author-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, rgba(123,110,246,0.12), rgba(240,98,146,0.08));
+      border: 1px solid rgba(123,110,246,0.25);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      margin-bottom: 28px;
+      gap: 12px;
+    }
+    .author-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .author-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 16px; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+    .author-name { font-size: 14px; color: var(--text); margin-bottom: 3px; }
+    .author-name strong { color: var(--accent); }
+    .author-reviewer { font-size: 12px; color: var(--text-muted); }
+    .author-reviewer span { color: var(--accent2); font-weight: 500; }
+    .author-badge {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--accent);
+      background: rgba(123,110,246,0.12);
+      border: 1px solid rgba(123,110,246,0.2);
+      border-radius: 100px;
+      padding: 5px 14px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .left-col { order: 0; }
+      .right-col { order: 1; }
+    }
+
+    @media (max-width: 540px) {
+      header { flex-direction: column; gap: 14px; align-items: flex-start; }
+      .header-stats { flex-wrap: wrap; }
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
   </style>
 </head>
 <body>
 
-  <div class="blur blur1"></div>
-  <div class="blur blur2"></div>
+  <div class="glow-orb a"></div>
+  <div class="glow-orb b"></div>
+  <div class="glow-orb c"></div>
 
-  <div class="container">
+  <div class="app">
 
-    <div class="sidebar glass">
-      <div class="title">Планирование экзаменов</div>
-      <div class="subtitle">
-        Планируй подготовку к экзаменам и следи, сколько дней осталось.
-        Сайт создан Альбертом группы 5551
-        Проверяющий проект: Гурьев Максим Сергеевич
+    <!-- HEADER -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">📅</div>
+        <div class="logo-text">Exam<span>Planner</span></div>
       </div>
-
-      <div class="info-card">
-        <div class="info-label">Всего экзаменов</div>
-        <div class="info-value" id="examCount">0</div>
+      <div class="header-stats">
+        <div class="stat-chip">
+          <span class="stat-dot" style="background:#7b6ef6"></span>
+          Всего: <strong id="statTotal">0</strong>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-dot" style="background:#f06292"></span>
+          Срочных: <strong id="statUrgent">0</strong>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-dot" style="background:#4dd0b8"></span>
+          Сдано: <strong id="statDone">0</strong>
+        </div>
       </div>
+    </header>
 
-      <form id="examForm">
-        <input type="text" id="examName" placeholder="Название экзамена" required>
-        <input type="date" id="examDate" required>
-        <button type="submit">Добавить экзамен</button>
-      </form>
+    <!-- AUTHOR BANNER -->
+    <div class="author-banner">
+      <div class="author-left">
+        <span class="author-avatar">А</span>
+        <div>
+          <div class="author-name">Сайт сделан <strong>Альбертом</strong>, группа <strong>5551</strong></div>
+          <div class="author-reviewer">Проверяющий: <span>Гурьев М.С.</span></div>
+        </div>
+      </div>
+      <div class="author-badge">Индивидуальный проект</div>
     </div>
 
-    <div class="main glass">
-      <div class="section-title">Мои экзамены</div>
+    <div class="main-grid">
 
-      <div class="exam-list" id="examList">
-        <div class="empty">Пока нет экзаменов 📚</div>
+      <!-- LEFT: ADD FORM -->
+      <div class="left-col">
+        <div class="panel">
+          <div class="panel-title">Добавить экзамен</div>
+
+          <div class="form-group">
+            <label>Название</label>
+            <input type="text" id="examName" placeholder="Математический анализ" maxlength="60">
+          </div>
+
+          <div class="form-group">
+            <label>Дата</label>
+            <input type="date" id="examDate">
+          </div>
+
+          <div class="form-group">
+            <label>Предмет / Категория</label>
+            <select id="examSubject">
+              <option value="Общее">Без категории</option>
+              <option value="Математика">Математика</option>
+              <option value="Физика">Физика</option>
+              <option value="Информатика">Информатика</option>
+              <option value="Химия">Химия</option>
+              <option value="Биология">Биология</option>
+              <option value="История">История</option>
+              <option value="Языки">Языки</option>
+              <option value="Экономика">Экономика</option>
+              <option value="Право">Право</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Цвет метки</label>
+            <div class="color-row" id="colorRow"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Заметка (необязательно)</label>
+            <textarea id="examNote" placeholder="Тема для повторения, место сдачи..."></textarea>
+          </div>
+
+          <button class="btn-primary" id="addBtn">+ Добавить экзамен</button>
+        </div>
+
+        <!-- MINI PROGRESS PANEL -->
+        <div class="panel" style="margin-top:14px;">
+          <div class="panel-title">Ближайший экзамен</div>
+          <div id="nextExamInfo" style="color:var(--text-muted);font-size:13px;">Пока нет экзаменов</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: LIST -->
+      <div class="right-col">
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Поиск по названию...">
+          </div>
+          <button class="filter-btn active" data-filter="all">Все</button>
+          <button class="filter-btn" data-filter="upcoming">Предстоящие</button>
+          <button class="filter-btn" data-filter="urgent">Срочные</button>
+          <button class="filter-btn" data-filter="done">Сданные</button>
+          <select class="sort-select" id="sortSelect">
+            <option value="date-asc">По дате ↑</option>
+            <option value="date-desc">По дате ↓</option>
+            <option value="name">По названию</option>
+            <option value="days">По дням</option>
+          </select>
+        </div>
+
+        <div class="exam-list" id="examList"></div>
+
+        <div class="summary-strip" id="summaryStrip"></div>
       </div>
     </div>
-
   </div>
 
-  <script>
-    const form = document.getElementById('examForm');
-    const examList = document.getElementById('examList');
-    const examCount = document.getElementById('examCount');
+  <!-- EDIT MODAL -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-title">✏️ Редактировать</div>
+      <div class="form-group">
+        <label>Название</label>
+        <input type="text" id="editName" maxlength="60">
+      </div>
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="date" id="editDate">
+      </div>
+      <div class="form-group">
+        <label>Предмет</label>
+        <select id="editSubject">
+          <option value="Общее">Без категории</option>
+          <option value="Математика">Математика</option>
+          <option value="Физика">Физика</option>
+          <option value="Информатика">Информатика</option>
+          <option value="Химия">Химия</option>
+          <option value="Биология">Биология</option>
+          <option value="История">История</option>
+          <option value="Языки">Языки</option>
+          <option value="Экономика">Экономика</option>
+          <option value="Право">Право</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Заметка</label>
+        <textarea id="editNote"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="editCancel">Отмена</button>
+        <button class="btn-primary" id="editSave" style="flex:1">Сохранить</button>
+      </div>
+    </div>
+  </div>
 
-    let exams = JSON.parse(localStorage.getItem('exams')) || [];
+  <!-- TOAST -->
+  <div id="toast"></div>
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+<script>
+// ──────────────────────────────────────────────
+//  DATA
+// ──────────────────────────────────────────────
+const COLORS = ['#7b6ef6','#f06292','#4dd0b8','#f5c842','#64b5f6','#ff8a65','#a5d6a7','#ce93d8','#80cbc4','#ffcc80','#ef9a9a','#90caf9'];
 
-      const name = document.getElementById('examName').value;
-      const date = document.getElementById('examDate').value;
+let exams = [];
+let selectedColor = COLORS[0];
+let currentFilter = 'all';
+let editingId = null;
 
-      exams.push({
-        id: Date.now(),
-        name,
-        date
-      });
+// Load
+try { exams = JSON.parse(localStorage.getItem('ep_exams')) || []; } catch(e) { exams = []; }
 
-      saveExams();
-      renderExams();
-      form.reset();
-    });
+// ──────────────────────────────────────────────
+//  INIT COLOR PICKER
+// ──────────────────────────────────────────────
+const colorRow = document.getElementById('colorRow');
+COLORS.forEach((c, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'color-dot' + (i === 0 ? ' selected' : '');
+  dot.style.background = c;
+  dot.title = c;
+  dot.addEventListener('click', () => {
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+    dot.classList.add('selected');
+    selectedColor = c;
+  });
+  colorRow.appendChild(dot);
+});
 
-    function saveExams() {
-      localStorage.setItem('exams', JSON.stringify(exams));
-    }
+// ──────────────────────────────────────────────
+//  SAVE / HELPERS
+// ──────────────────────────────────────────────
+function save() {
+  localStorage.setItem('ep_exams', JSON.stringify(exams));
+}
 
-    function deleteExam(id) {
-      exams = exams.filter(exam => exam.id !== id);
-      saveExams();
-      renderExams();
-    }
+function daysLeft(dateStr) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  return Math.ceil((d - now) / 86400000);
+}
 
-    function renderExams() {
-      examList.innerHTML = '';
-      examCount.textContent = exams.length;
+function fmt(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' });
+}
 
-      if (exams.length === 0) {
-        examList.innerHTML = '<div class="empty">Пока нет экзаменов 📚</div>';
-        return;
-      }
+function urgencyClass(days) {
+  if (days < 0)  return 'past';
+  if (days <= 3) return 'urgent';
+  if (days <= 7) return 'soon';
+  return 'ok';
+}
 
-      exams.forEach(exam => {
-        const today = new Date();
-        const examDate = new Date(exam.date);
+function progressPct(dateStr, days) {
+  // how far through "preparation window" (assume 30 days before)
+  if (days < 0) return 100;
+  const pct = Math.round(((30 - days) / 30) * 100);
+  return Math.min(100, Math.max(0, pct));
+}
 
-        const diffTime = examDate - today;
-        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+function progressColor(days) {
+  if (days < 0)  return 'var(--text-subtle)';
+  if (days <= 3) return 'var(--red)';
+  if (days <= 7) return 'var(--yellow)';
+  return 'var(--green)';
+}
 
-        const card = document.createElement('div');
-        card.className = 'exam-card';
+// ──────────────────────────────────────────────
+//  TOAST
+// ──────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
 
-        card.innerHTML = `
-          <div>
-            <div class="exam-name">${exam.name}</div>
-            <div class="exam-date">Дата: ${exam.date}</div>
-          </div>
+// ──────────────────────────────────────────────
+//  RENDER
+// ──────────────────────────────────────────────
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
 
-          <div class="days-left">
-            <div class="days-number">${daysLeft}</div>
-            <div class="days-text">дней осталось</div>
+  let list = exams.filter(e => {
+    if (q && !e.name.toLowerCase().includes(q) && !(e.subject||'').toLowerCase().includes(q)) return false;
+    const d = daysLeft(e.date);
+    if (currentFilter === 'upcoming') return d >= 0 && !e.done;
+    if (currentFilter === 'urgent')   return d >= 0 && d <= 7 && !e.done;
+    if (currentFilter === 'done')     return e.done || d < 0;
+    return true;
+  });
 
-            <button class="delete-btn" onclick="deleteExam(${exam.id})">
-              Удалить
-            </button>
-          </div>
-        `;
+  list.sort((a, b) => {
+    if (sort === 'date-asc')  return new Date(a.date) - new Date(b.date);
+    if (sort === 'date-desc') return new Date(b.date) - new Date(a.date);
+    if (sort === 'name')      return a.name.localeCompare(b.name, 'ru');
+    if (sort === 'days')      return daysLeft(a.date) - daysLeft(b.date);
+    return 0;
+  });
 
-        examList.appendChild(card);
-      });
-    }
+  return list;
+}
 
-    renderExams();
-  </script>
+function render() {
+  const list = getFiltered();
+  const container = document.getElementById('examList');
+  container.innerHTML = '';
 
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">📭</span>
+        <h3>${currentFilter === 'done' ? 'Нет сданных экзаменов' : 'Ничего не найдено'}</h3>
+        <p>${currentFilter === 'all' && !document.getElementById('searchInput').value
+          ? 'Добавьте первый экзамен слева, чтобы начать планирование.'
+          : 'Попробуйте изменить фильтр или поисковый запрос.'}</p>
+      </div>`;
+  } else {
+    list.forEach(exam => container.appendChild(buildCard(exam)));
+  }
+
+  updateStats();
+  updateSummary(list);
+  updateNextExam();
+}
+
+function buildCard(exam) {
+  const d = daysLeft(exam.date);
+  const uClass = urgencyClass(d);
+  const color = exam.color || COLORS[0];
+  const pct = progressPct(exam.date, d);
+
+  const card = document.createElement('div');
+  card.className = 'exam-card' + (exam.done ? ' done' : '');
+  card.style.setProperty('--card-color', color);
+
+  let daysText, daysLabel;
+  if (d < 0)      { daysText = Math.abs(d); daysLabel = 'дней назад'; }
+  else if (d === 0) { daysText = '!'; daysLabel = 'сегодня'; }
+  else            { daysText = d; daysLabel = d === 1 ? 'день' : d < 5 ? 'дня' : 'дней'; }
+
+  card.innerHTML = `
+    <div class="card-main">
+      <div class="card-top">
+        <div class="exam-name">${escHtml(exam.name)}</div>
+        ${exam.subject && exam.subject !== 'Общее' ? `<span class="exam-badge">${escHtml(exam.subject)}</span>` : ''}
+      </div>
+      <div class="card-meta">
+        <span class="meta-item">📅 ${fmt(exam.date)}</span>
+        ${exam.done ? '<span class="meta-item" style="color:var(--green)">✔ Сдан</span>' : ''}
+      </div>
+      ${exam.note ? `<div class="exam-note">💬 ${escHtml(exam.note)}</div>` : ''}
+      <div class="progress-wrap">
+        <div class="progress-bar" style="width:${pct}%;background:${progressColor(d)}"></div>
+      </div>
+    </div>
+    <div class="card-countdown">
+      <div class="days-num ${uClass}">${daysText}</div>
+      <div class="days-label">${daysLabel}</div>
+    </div>
+    <div class="card-actions">
+      <button class="icon-btn done-btn ${exam.done ? 'active-done' : ''}" title="${exam.done ? 'Снять отметку' : 'Отметить как сдан'}" data-id="${exam.id}">✔</button>
+      <button class="icon-btn edit-btn" title="Редактировать" data-id="${exam.id}">✏️</button>
+      <button class="icon-btn danger del-btn" title="Удалить" data-id="${exam.id}">✕</button>
+    </div>
+  `;
+
+  // events
+  card.querySelector('.del-btn').addEventListener('click', () => deleteExam(exam.id));
+  card.querySelector('.done-btn').addEventListener('click', () => toggleDone(exam.id));
+  card.querySelector('.edit-btn').addEventListener('click', () => openEdit(exam.id));
+
+  return card;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ──────────────────────────────────────────────
+//  STATS
+// ──────────────────────────────────────────────
+function updateStats() {
+  const active = exams.filter(e => !e.done && daysLeft(e.date) >= 0);
+  const urgent = active.filter(e => daysLeft(e.date) <= 3);
+  const done   = exams.filter(e => e.done || daysLeft(e.date) < 0);
+  document.getElementById('statTotal').textContent  = active.length;
+  document.getElementById('statUrgent').textContent = urgent.length;
+  document.getElementById('statDone').textContent   = done.length;
+}
+
+function updateSummary(list) {
+  const strip = document.getElementById('summaryStrip');
+  strip.innerHTML = '';
+  if (list.length === 0) return;
+
+  const counts = { urgent: 0, soon: 0, ok: 0, past: 0 };
+  list.forEach(e => {
+    const u = urgencyClass(daysLeft(e.date));
+    counts[u]++;
+  });
+
+  const labels = { urgent:'Срочных', soon:'Скоро', ok:'Впереди', past:'Прошедших' };
+  const colors = { urgent:'var(--red)', soon:'var(--yellow)', ok:'var(--green)', past:'var(--text-subtle)' };
+  Object.entries(counts).forEach(([k, v]) => {
+    if (!v) return;
+    const chip = document.createElement('div');
+    chip.className = 'summary-chip';
+    chip.innerHTML = `<span class="dot" style="background:${colors[k]}"></span>${labels[k]}: <strong>${v}</strong>`;
+    strip.appendChild(chip);
+  });
+}
+
+function updateNextExam() {
+  const upcoming = exams
+    .filter(e => !e.done && daysLeft(e.date) >= 0)
+    .sort((a,b) => daysLeft(a.date) - daysLeft(b.date));
+
+  const el = document.getElementById('nextExamInfo');
+  if (!upcoming.length) {
+    el.innerHTML = '<span style="color:var(--text-muted)">Нет предстоящих экзаменов</span>';
+    return;
+  }
+  const next = upcoming[0];
+  const d = daysLeft(next.date);
+  const col = progressColor(d);
+  el.innerHTML = `
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px">${escHtml(next.name)}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">${fmt(next.date)}</div>
+    <div style="font-size:28px;font-family:'Syne',sans-serif;font-weight:800;color:${col};line-height:1">${d}</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${d === 1 ? 'день' : d < 5 ? 'дня' : 'дней'} осталось</div>
+  `;
+}
+
+// ──────────────────────────────────────────────
+//  ADD
+// ──────────────────────────────────────────────
+document.getElementById('addBtn').addEventListener('click', () => {
+  const name    = document.getElementById('examName').value.trim();
+  const date    = document.getElementById('examDate').value;
+  const subject = document.getElementById('examSubject').value;
+  const note    = document.getElementById('examNote').value.trim();
+
+  if (!name) { showToast('⚠️ Введите название экзамена'); return; }
+  if (!date) { showToast('⚠️ Выберите дату'); return; }
+
+  exams.push({ id: Date.now(), name, date, subject, note, color: selectedColor, done: false });
+  save();
+  render();
+  showToast('✅ Экзамен добавлен');
+
+  document.getElementById('examName').value = '';
+  document.getElementById('examDate').value = '';
+  document.getElementById('examNote').value = '';
+  document.getElementById('examSubject').value = 'Общее';
+});
+
+// Enter key on name
+document.getElementById('examName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('examDate').focus();
+});
+
+// ──────────────────────────────────────────────
+//  DELETE
+// ──────────────────────────────────────────────
+function deleteExam(id) {
+  exams = exams.filter(e => e.id !== id);
+  save(); render();
+  showToast('🗑 Удалено');
+}
+
+// ──────────────────────────────────────────────
+//  TOGGLE DONE
+// ──────────────────────────────────────────────
+function toggleDone(id) {
+  const ex = exams.find(e => e.id === id);
+  if (!ex) return;
+  ex.done = !ex.done;
+  save(); render();
+  showToast(ex.done ? '🎉 Отмечен как сданный!' : '↩ Статус снят');
+}
+
+// ──────────────────────────────────────────────
+//  EDIT MODAL
+// ──────────────────────────────────────────────
+function openEdit(id) {
+  const ex = exams.find(e => e.id === id);
+  if (!ex) return;
+  editingId = id;
+  document.getElementById('editName').value    = ex.name;
+  document.getElementById('editDate').value    = ex.date;
+  document.getElementById('editSubject').value = ex.subject || 'Общее';
+  document.getElementById('editNote').value    = ex.note || '';
+  document.getElementById('editModal').classList.add('open');
+}
+
+document.getElementById('editCancel').addEventListener('click', closeEdit);
+document.getElementById('editModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEdit(); });
+
+function closeEdit() {
+  document.getElementById('editModal').classList.remove('open');
+  editingId = null;
+}
+
+document.getElementById('editSave').addEventListener('click', () => {
+  const ex = exams.find(e => e.id === editingId);
+  if (!ex) return;
+  const name = document.getElementById('editName').value.trim();
+  const date = document.getElementById('editDate').value;
+  if (!name || !date) { showToast('⚠️ Заполните все поля'); return; }
+  ex.name    = name;
+  ex.date    = date;
+  ex.subject = document.getElementById('editSubject').value;
+  ex.note    = document.getElementById('editNote').value.trim();
+  save(); closeEdit(); render();
+  showToast('💾 Изменения сохранены');
+});
+
+// ──────────────────────────────────────────────
+//  FILTER & SORT
+// ──────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', render);
+document.getElementById('sortSelect').addEventListener('change', render);
+
+// ──────────────────────────────────────────────
+//  KEYBOARD SHORTCUT: Escape closes modal
+// ──────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeEdit();
+});
+
+// ──────────────────────────────────────────────
+//  INITIAL RENDER
+// ──────────────────────────────────────────────
+render();
+</script>
 </body>
 </html>
